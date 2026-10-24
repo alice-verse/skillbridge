@@ -3,5 +3,6 @@
 // the Row Level Security rules in supabase/schema.sql are what protect the data.
 window.APP_CONFIG = {
   SUPABASE_URL: "https://oojeqleuihzvdenyimlv.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_RixLEZ24ugRJvOkWxG1tmw_a3T3UgGK"
+  SUPABASE_ANON_KEY: "sb_publishable_RixLEZ24ugRJvOkWxG1tmw_a3T3UgGK",
+  SHOW_DEV_TABS: false
 };
