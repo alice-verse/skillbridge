@@ -5,8 +5,12 @@
 
 /* 1. CONFIG ------------------------------------------------------------ */
 const CFG = window.APP_CONFIG || {};
-const LIVE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase);
-const sb = LIVE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
+/* tidy the pasted values: keep only https://<project>.supabase.co (no trailing slash or path) and trim spaces from the key */
+let SB_URL = String(CFG.SUPABASE_URL || "").trim(); try { if (SB_URL) SB_URL = new URL(SB_URL).origin; } catch (e) {}
+const DEV = CFG.SHOW_DEV_TABS !== false;   // set SHOW_DEV_TABS: false in config.js to hide the "Under the hood" and "Database" tabs
+const SB_KEY = String(CFG.SUPABASE_ANON_KEY || "").trim();
+const LIVE = !!(SB_URL && SB_KEY && window.supabase);
+const sb = LIVE ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 const $ = id => document.getElementById(id);
 const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const SKILLS = [["python","Python","Technical"],["sql","SQL","Technical"],["excel","Excel","Technical"],["web","Web development","Technical"],["analytics","Data analysis","Technical"],["comm","Communication","Soft"],["team","Teamwork","Soft"],["solve","Problem solving","Soft"]];
@@ -280,7 +284,8 @@ async function render() {
   $("mode").className = "banner " + (LIVE ? "live" : "");
   $("mode").textContent = LIVE ? "Connected to a real Supabase database." : "Demo mode: data is stored in this browser only. Add Supabase keys in config.js for the real database.";
   $("who").innerHTML = ME ? `<span class="m">${ME.role}</span> ${esc(ME.name)} <button class="s" data-act="signout">Sign out</button>` : `<button class="s p" data-act="goup">Sign up</button>`;
-  const nav = [["home", "Home"], ["app", ME ? (ME.role === "admin" ? "Admin panel" : "My dashboard") : "Sign in"], ["log", "Under the hood"], ["db", "Database"]];
+  const nav = [["home", "Home"], ["app", ME ? (ME.role === "admin" ? "Admin panel" : "My dashboard") : "Sign in"]].concat(DEV ? [["log", "Under the hood"], ["db", "Database"]] : []);
+  if (!DEV && (TAB === "log" || TAB === "db")) TAB = "home";
   $("tabs").innerHTML = nav.map(t => `<button class="${TAB === t[0] ? "on" : ""}" data-act="tab" data-a="${t[0]}">${t[1]}</button>`).join("");
   try { $("v").innerHTML = TAB === "home" ? await homeView() : TAB === "log" ? logView() : TAB === "db" ? await dbView() : !ME ? loginView() : await roleView[ME.role](); }
   catch (err) { $("v").innerHTML = `<div class="cd"><h2>Something went wrong</h2><p>${esc(err.message)}</p></div>`; }
